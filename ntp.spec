@@ -1,7 +1,7 @@
 Summary: The NTP daemon and utilities
 Name: ntp
 Version: 4.2.6p5
-Release: 10%{?dist}.2
+Release: 12%{?dist}.1
 # primary license (COPYRIGHT) : MIT
 # ElectricFence/ (not used) : GPLv2
 # kernel/sys/ppsclock.h (not used) : BSD with advertising
@@ -172,6 +172,12 @@ Patch66: ntp-4.2.6p5-cve-2016-7433.patch
 Patch67: ntp-4.2.6p5-cve-2016-9310.patch
 # ntpbz #3119
 Patch68: ntp-4.2.6p5-cve-2016-9311.patch
+# ntpbz #3388
+Patch69: ntp-4.2.6p5-cve-2017-6462.patch
+# ntpbz #3387
+Patch70: ntp-4.2.6p5-cve-2017-6463.patch
+# ntpbz #3389
+Patch71: ntp-4.2.6p5-cve-2017-6464.patch
 
 # handle unknown clock types
 Patch100: ntpstat-0.2-clksrc.patch
@@ -313,6 +319,9 @@ This package contains NTP documentation in HTML format.
 %patch66 -p1 -b .cve-2016-7433
 %patch67 -p1 -b .cve-2016-9310
 %patch68 -p1 -b .cve-2016-9311
+%patch69 -p1 -b .cve-2017-6462
+%patch70 -p1 -b .cve-2017-6463
+%patch71 -p1 -b .cve-2017-6464
 
 # ntpstat patches
 %patch100 -p1 -b .clksrc
@@ -506,14 +515,19 @@ fi
 %{ntpdocdir}/html
 
 %changelog
-* Wed Jan 11 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-10.el6_8.2
+* Fri Sep 22 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-12.el6_9.1
+- fix buffer overflow in datum refclock driver (CVE-2017-6462)
+- fix crash with invalid unpeer command (CVE-2017-6463)
+- fix potential crash with invalid server command (CVE-2017-6464)
+
+* Wed Jan 11 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-12
 - don't limit rate of packets from sources (CVE-2016-7426)
 - don't change interface from received packets (CVE-2016-7429)
 - fix calculation of root distance again (CVE-2016-7433)
 - require authentication for trap commands (CVE-2016-9310)
 - fix crash when reporting peer event to trappers (CVE-2016-9311)
 
-* Tue May 03 2016 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-10.el6_8.1
+* Tue May 03 2016 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-11
 - don't allow spoofed packets to demobilize associations (CVE-2015-7979,
   CVE-2016-1547)
 - don't allow spoofed packet to enable symmetric interleaved mode
