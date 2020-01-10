@@ -1,7 +1,7 @@
 Summary: The NTP daemon and utilities
 Name: ntp
 Version: 4.2.6p5
-Release: 12%{?dist}.2
+Release: 15%{?dist}
 # primary license (COPYRIGHT) : MIT
 # ElectricFence/ (not used) : GPLv2
 # kernel/sys/ppsclock.h (not used) : BSD with advertising
@@ -178,6 +178,8 @@ Patch69: ntp-4.2.6p5-cve-2017-6462.patch
 Patch70: ntp-4.2.6p5-cve-2017-6463.patch
 # ntpbz #3389
 Patch71: ntp-4.2.6p5-cve-2017-6464.patch
+# ntpbz #3505
+Patch72: ntp-4.2.6p5-cve-2018-12327.patch
 
 # handle unknown clock types
 Patch100: ntpstat-0.2-clksrc.patch
@@ -322,6 +324,7 @@ This package contains NTP documentation in HTML format.
 %patch69 -p1 -b .cve-2017-6462
 %patch70 -p1 -b .cve-2017-6463
 %patch71 -p1 -b .cve-2017-6464
+%patch72 -p1 -b .cve-2018-12327
 
 # ntpstat patches
 %patch100 -p1 -b .clksrc
@@ -515,10 +518,13 @@ fi
 %{ntpdocdir}/html
 
 %changelog
-* Mon Dec 18 2017 Michal Ruprich <mruprich@redhat.com> - 4.2.6p5-12.el6_9.2
-- fix CVE-2016-7429 patch to work correctly on multicast client (#1525996)
+* Mon Dec 10 2018 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-15
+- fix buffer overflow in parsing of address in ntpq and ntpdc (CVE-2018-12327)
 
-* Fri Sep 22 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-12.el6_9.1
+* Tue Nov 28 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-14
+- fix CVE-2016-7429 patch to work correctly on multicast client (#1422973)
+
+* Fri Sep 22 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-13
 - fix buffer overflow in datum refclock driver (CVE-2017-6462)
 - fix crash with invalid unpeer command (CVE-2017-6463)
 - fix potential crash with invalid server command (CVE-2017-6464)
