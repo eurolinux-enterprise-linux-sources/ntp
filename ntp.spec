@@ -1,7 +1,7 @@
 Summary: The NTP daemon and utilities
 Name: ntp
 Version: 4.2.6p5
-Release: 12%{?dist}.1
+Release: 12%{?dist}.2
 # primary license (COPYRIGHT) : MIT
 # ElectricFence/ (not used) : GPLv2
 # kernel/sys/ppsclock.h (not used) : BSD with advertising
@@ -515,6 +515,9 @@ fi
 %{ntpdocdir}/html
 
 %changelog
+* Mon Dec 18 2017 Michal Ruprich <mruprich@redhat.com> - 4.2.6p5-12.el6_9.2
+- fix CVE-2016-7429 patch to work correctly on multicast client (#1525996)
+
 * Fri Sep 22 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-12.el6_9.1
 - fix buffer overflow in datum refclock driver (CVE-2017-6462)
 - fix crash with invalid unpeer command (CVE-2017-6463)
