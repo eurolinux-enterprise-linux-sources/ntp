@@ -1,0 +1,35 @@
+diff -up ntp-4.2.6p5/ntpdate/ntpdate.c.ntpdatetimeout ntp-4.2.6p5/ntpdate/ntpdate.c
+--- ntp-4.2.6p5/ntpdate/ntpdate.c.ntpdatetimeout	2013-07-11 19:13:55.990249481 +0200
++++ ntp-4.2.6p5/ntpdate/ntpdate.c	2013-07-11 19:13:56.056249581 +0200
+@@ -1029,7 +1029,7 @@ receive(
+ 	}
+ 
+ 	/*
+-	 * Shift this data in, then schedule another transmit.
++	 * Shift this data in, then transmit again.
+ 	 */
+ 	server_data(server, (s_fp) di, &ci, 0);
+ 
+@@ -1043,7 +1043,7 @@ receive(
+ 		return;
+ 	}
+ 
+-	server->event_time = current_time + sys_timeout;
++	transmit(server);
+ }
+ 
+ 
+diff -up ntp-4.2.6p5/ntpdate/ntpdate.h.ntpdatetimeout ntp-4.2.6p5/ntpdate/ntpdate.h
+--- ntp-4.2.6p5/ntpdate/ntpdate.h.ntpdatetimeout	2010-04-18 10:05:39.000000000 +0200
++++ ntp-4.2.6p5/ntpdate/ntpdate.h	2013-07-11 19:13:56.057249582 +0200
+@@ -91,8 +91,8 @@ struct server {
+ /*
+  * Some defaults
+  */
+-#define	MINTIMEOUT	(2 * TIMER_HZ)	/* 2s min. between packets */
+-#define	DEFTIMEOUT	MINTIMEOUT	/*   (to the same server) */
++#define	MINTIMEOUT	1		/* 0.2 s */
++#define	DEFTIMEOUT	5		/* 1.0 s */
+ #define	DEFSAMPLES	4		/* get 4 samples per server */
+ #define	DEFPRECISION	(-5)		/* the precision we claim */
+ #define	DEFMAXPERIOD	60		/* maximum time to wait */

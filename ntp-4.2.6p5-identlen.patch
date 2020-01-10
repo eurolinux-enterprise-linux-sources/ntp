@@ -1,0 +1,202 @@
+diff -up ntp-4.2.6p5/html/keygen.html.identlen ntp-4.2.6p5/html/keygen.html
+--- ntp-4.2.6p5/html/keygen.html.identlen	2013-07-11 16:59:33.795971756 +0200
++++ ntp-4.2.6p5/html/keygen.html	2013-07-11 16:59:33.824971790 +0200
+@@ -43,7 +43,7 @@
+ 
+ <h4 id="synop">Synopsis</h4>
+ 
+-<p id="intro"><tt>ntp-keygen [ -deGHIMPT ] [ -c [RSA-MD2 | RSA-MD5 | RSA-SHA
++<p id="intro"><tt>ntp-keygen [ -deGHIMPT ] [ -b <i>modulus</i> ] [ -c [RSA-MD2 | RSA-MD5 | RSA-SHA
+ 		| RSA-SHA1 | RSA-MDC2 | RSA-RIPEMD160 | DSA-SHA | DSA-SHA1 ] ] [
+ 		-i <i>group</i> ]
+ 		[ -m <i>modulus</i> ]  [ -p <i>passwd2</i> ] [ -q <i>passwd1</i> ] [ -S
+@@ -140,6 +140,8 @@
+ <h4 id="cmd">Command Line Options</h4>
+ 
+ <dl>
++<dt><tt>-b <i>modulus</i></tt></dt>
++<dd>Set the modulus for generating identity keys to <i>modulus</i> bits. The modulus defaults to 256, but can be set from 256 (32 octets) to 2048 (256 octets). Use the larger moduli with caution, as this can consume considerable computing resources and increases the size of authenticated packets.</dd>
+ 
+ <dt><tt>-c [ RSA-MD2 | RSA-MD5 | RSA-SHA | RSA-SHA1 | RSA-MDC2 | RSA-RIPEMD160 | DSA-SHA | DSA-SHA1 ]</tt></dt>
+ <dd>Select certificate and message digest/signature encryption scheme. Note that
+diff -up ntp-4.2.6p5/util/ntp-keygen-opts.c.identlen ntp-4.2.6p5/util/ntp-keygen-opts.c
+--- ntp-4.2.6p5/util/ntp-keygen-opts.c.identlen	2011-12-25 00:34:40.000000000 +0100
++++ ntp-4.2.6p5/util/ntp-keygen-opts.c	2013-07-11 17:12:17.129862930 +0200
+@@ -60,6 +60,24 @@ extern tUsageProc optionUsage;
+ #endif
+ 
+ /*
++ *  Imbits option description:
++ */
++#ifdef OPENSSL
++static char const zImbitsText[] =
++        "identity modulus bits";
++static char const zImbits_NAME[]             = "IMBITS";
++static char const zImbits_Name[]             = "imbits";
++#define IMBITS_FLAGS       (OPTST_DISABLED \
++        | OPTST_SET_ARGTYPE(OPARG_TYPE_NUMERIC))
++
++#else   /* disable Imbits */
++#define IMBITS_FLAGS       (OPTST_OMITTED | OPTST_NO_INIT)
++#define zImbits_NAME      NULL
++#define zImbitsText       NULL
++#define zImbits_Name      NULL
++#endif  /* OPENSSL */
++
++/*
+  *  Certificate option description:
+  */
+ #ifdef OPENSSL
+@@ -385,6 +403,11 @@ static char const zNotLoad_Opts_Pfx[]  =
+  *  Declare option callback procedures
+  */
+ #ifdef OPENSSL
++  static tOptProc doOptImbits;
++#else /* not OPENSSL */
++# define doOptImbits NULL
++#endif /* def/not OPENSSL */
++#ifdef OPENSSL
+   static tOptProc doOptModulus;
+ #else /* not OPENSSL */
+ # define doOptModulus NULL
+@@ -649,6 +672,19 @@ static tOptDesc optDesc[OPTION_CT] = {
+      /* desc, NAME, name */ zMv_KeysText, zMv_Keys_NAME, zMv_Keys_Name,
+      /* disablement strs */ NULL, NULL },
+ 
++  {  /* entry idx, value */ 18, VALUE_OPT_IMBITS,
++     /* equiv idx, value */ 18, VALUE_OPT_IMBITS,
++     /* equivalenced to  */ NO_EQUIVALENT,
++     /* min, max, act ct */ 0, 1, 0,
++     /* opt state flags  */ IMBITS_FLAGS, 0,
++     /* last opt argumnt */ { NULL },
++     /* arg list/cookie  */ NULL,
++     /* must/cannot opts */ NULL, NULL,
++     /* option proc      */ doOptImbits,
++     /* desc, NAME, name */ zImbitsText, zImbits_NAME, zImbits_Name,
++     /* disablement strs */ NULL, NULL },
++
++
+   {  /* entry idx, value */ INDEX_OPT_VERSION, VALUE_OPT_VERSION,
+      /* equiv idx value  */ NO_EQUIVALENT, 0,
+      /* equivalenced to  */ NO_EQUIVALENT,
+@@ -795,7 +831,7 @@ tOptions ntp_keygenOptions = {
+       NO_EQUIVALENT, /* '-#' option index */
+       NO_EQUIVALENT /* index of default opt */
+     },
+-    23 /* full option count */, 18 /* user option count */,
++    24 /* full option count */, 19 /* user option count */,
+     ntp_keygen_full_usage, ntp_keygen_short_usage,
+     NULL, NULL,
+     PKGDATADIR, ntp_keygen_packager_info
+@@ -811,6 +847,41 @@ doUsageOpt(tOptions * pOptions, tOptDesc
+     USAGE(NTP_KEYGEN_EXIT_SUCCESS);
+ }
+ 
++/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
++ *
++ *   For the imbits option, when OPENSSL is #define-d.
++ */
++#ifdef OPENSSL
++static void
++doOptImbits(tOptions* pOptions, tOptDesc* pOptDesc)
++{
++    static const struct {long const rmin, rmax;} rng[1] = {
++        { 256, 2048 } };
++    int  ix;
++
++    if (pOptions <= OPTPROC_EMIT_LIMIT)
++        goto emit_ranges;
++    optionNumericVal(pOptions, pOptDesc);
++
++    for (ix = 0; ix < 1; ix++) {
++        if (pOptDesc->optArg.argInt < rng[ix].rmin)
++            continue;  /* ranges need not be ordered. */
++        if (pOptDesc->optArg.argInt == rng[ix].rmin)
++            return;
++        if (rng[ix].rmax == LONG_MIN)
++            continue;
++        if (pOptDesc->optArg.argInt <= rng[ix].rmax)
++            return;
++    }
++
++    option_usage_fp = stderr;
++
++emit_ranges:
++
++    optionShowRange(pOptions, pOptDesc, (void *)rng, 1);
++}
++#endif /* defined OPENSSL */
++
+ #if ! defined(TEST_NTP_KEYGEN_OPTS)
+ 
+ /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+diff -up ntp-4.2.6p5/util/ntp-keygen-opts.h.identlen ntp-4.2.6p5/util/ntp-keygen-opts.h
+--- ntp-4.2.6p5/util/ntp-keygen-opts.h.identlen	2011-12-25 00:34:40.000000000 +0100
++++ ntp-4.2.6p5/util/ntp-keygen-opts.h	2013-07-11 16:59:33.825971791 +0200
+@@ -67,14 +67,15 @@ typedef enum {
+     INDEX_OPT_TRUSTED_CERT     = 15,
+     INDEX_OPT_MV_PARAMS        = 16,
+     INDEX_OPT_MV_KEYS          = 17,
+-    INDEX_OPT_VERSION          = 18,
+-    INDEX_OPT_HELP             = 19,
+-    INDEX_OPT_MORE_HELP        = 20,
+-    INDEX_OPT_SAVE_OPTS        = 21,
+-    INDEX_OPT_LOAD_OPTS        = 22
++    INDEX_OPT_IMBITS           = 18,
++    INDEX_OPT_VERSION          = 19,
++    INDEX_OPT_HELP             = 20,
++    INDEX_OPT_MORE_HELP        = 21,
++    INDEX_OPT_SAVE_OPTS        = 22,
++    INDEX_OPT_LOAD_OPTS        = 23
+ } teOptIndex;
+ 
+-#define OPTION_CT    23
++#define OPTION_CT    24
+ #define NTP_KEYGEN_VERSION       "4.2.6p5"
+ #define NTP_KEYGEN_FULL_VERSION  "ntp-keygen (ntp) 4.2.6p5"
+ 
+@@ -111,6 +112,10 @@ typedef enum {
+  *  Make sure there are no #define name conflicts with the option names
+  */
+ #ifndef     NO_OPTION_NAME_WARNINGS
++# ifdef    IMBITS
++#  warning undefining IMBITS due to option name conflict
++#  undef   IMBITS
++# endif
+ # ifdef    CERTIFICATE
+ #  warning undefining CERTIFICATE due to option name conflict
+ #  undef   CERTIFICATE
+@@ -184,6 +189,7 @@ typedef enum {
+ #  undef   MV_KEYS
+ # endif
+ #else  /* NO_OPTION_NAME_WARNINGS */
++# undef IMBITS
+ # undef CERTIFICATE
+ # undef DEBUG_LEVEL
+ # undef SET_DEBUG_LEVEL
+@@ -208,6 +214,11 @@ typedef enum {
+  *
+  *  Interface defines for specific options.
+  */
++#define VALUE_OPT_IMBITS         'b'
++#ifdef OPENSSL
++
++#define OPT_VALUE_IMBITS         (DESC(IMBITS).optArg.argInt)
++#endif /* OPENSSL */
+ #define VALUE_OPT_CERTIFICATE    'c'
+ #define VALUE_OPT_DEBUG_LEVEL    'd'
+ #define VALUE_OPT_SET_DEBUG_LEVEL 'D'
+diff -up ntp-4.2.6p5/util/ntp-keygen.c.identlen ntp-4.2.6p5/util/ntp-keygen.c
+--- ntp-4.2.6p5/util/ntp-keygen.c.identlen	2011-12-25 00:27:16.000000000 +0100
++++ ntp-4.2.6p5/util/ntp-keygen.c	2013-07-11 16:59:33.826971792 +0200
+@@ -318,6 +318,10 @@ main(
+ 		mvpar++;
+ 		nkeys = OPT_VALUE_MV_KEYS;
+ 	}
++
++	if (HAVE_OPT( IMBITS ))
++		modulus2 = OPT_VALUE_IMBITS;
++
+ 	if (HAVE_OPT( MODULUS ))
+ 		modulus = OPT_VALUE_MODULUS;
+ 

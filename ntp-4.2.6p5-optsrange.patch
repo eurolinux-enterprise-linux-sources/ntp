@@ -1,0 +1,12 @@
+diff -up ntp-4.2.6p5/sntp/libopts/autoopts/usage-txt.h.optsrange ntp-4.2.6p5/sntp/libopts/autoopts/usage-txt.h
+--- ntp-4.2.6p5/sntp/libopts/autoopts/usage-txt.h.optsrange	2011-05-16 06:14:36.000000000 +0200
++++ ntp-4.2.6p5/sntp/libopts/autoopts/usage-txt.h	2013-07-12 18:15:36.122764517 +0200
+@@ -331,7 +331,7 @@ static char const usage_txt[4435] =
+     "%sIt must lie in one of the ranges:\n\0"
+     "%sIt must be in the range:\n\0"
+     ", or\n\0"
+-    "%s error:  %s option value ``%s'' is out of range.\n\0"
++    "%s error:  %s option value %ld is out of range.\n\0"
+     "%s%ld exactly\0"
+     "%sis scalable with a suffix: k/K/m/M/g/G/t/T\n\0"
+     "%sless than or equal to %ld\0"
