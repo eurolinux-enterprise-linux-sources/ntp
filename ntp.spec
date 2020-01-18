@@ -1,7 +1,7 @@
 Summary: The NTP daemon and utilities
 Name: ntp
 Version: 4.2.6p5
-Release: 25%{?dist}.1
+Release: 25%{?dist}.2
 # primary license (COPYRIGHT) : MIT
 # ElectricFence/ (not used) : GPLv2
 # kernel/sys/ppsclock.h (not used) : BSD with advertising
@@ -557,6 +557,9 @@ popd
 %{ntpdocdir}/html
 
 %changelog
+* Tue Feb 28 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-25.el7_3.2
+- fix CVE-2016-7429 patch to work correctly on multicast client (#1427573)
+
 * Wed Jan 11 2017 Miroslav Lichvar <mlichvar@redhat.com> 4.2.6p5-25.el7_3.1
 - don't limit rate of packets from sources (CVE-2016-7426)
 - don't change interface from received packets (CVE-2016-7429)
